@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+  
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#080c10;--bg2:#0d1219;--bg3:#121a24;--surface:#1a2535;--surface2:#1f2d42;
+    --border:#2a3d55;--border2:#3a5070;
+    --teal:#00d4aa;--teal2:#00a882;--teal3:#007a5e;
+    --amber:#f5a623;--amber2:#c4821a;
+    --red:#e84545;--red2:#b83535;
+    --blue:#4da8ff;--blue2:#2d7fcc;
+    --purple:#a78bfa;--purple2:#7c5ec4;
+    --green:#4ade80;
+    --text:#e8f0fe;--text2:#9ab0cc;--text3:#5a7a99;
+    --mono:'Space Mono',monospace;
+    --sans:'DM Sans',sans-serif;
+  }
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:600px;overflow-x:hidden}
+  
+  /* Layout */
+  .app{display:flex;flex-direction:column;height:100%;min-height:620px}
+  .header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .logo{font-family:var(--mono);font-size:11px;color:var(--teal);letter-spacing:2px;text-transform:uppercase;font-weight:700}
+  .logo span{color:var(--text3)}
+  .main{display:flex;flex:1;min-height:0}
+  .sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0}
+  .content{flex:1;overflow:auto;padding:0}
+  
+  /* Nav */
+  .nav-section{padding:12px 0 4px}
+  .nav-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;padding:0 14px 6px}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;border-left:2px solid transparent;transition:all .15s;color:var(--text2);font-size:13px}
+  .nav-item:hover{background:var(--surface);color:var(--text)}
+  .nav-item.active{background:var(--surface);color:var(--teal);border-left-color:var(--teal)}
+  .nav-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0}
+  .nav-item.active .nav-dot{background:var(--teal)}
+  
+  /* Mode tabs */
+  .mode-tabs{display:flex;gap:4px;margin-left:auto}
+  .mode-tab{font-family:var(--mono);font-size:10px;padding:4px 10px;border:1px solid var(--border);border-radius:3px;cursor:pointer;color:var(--text3);background:transparent;letter-spacing:1px;transition:all .15s}
+  .mode-tab.active,.mode-tab:hover{border-color:var(--teal);color:var(--teal);background:rgba(0,212,170,.05)}
+  
+  /* Panel */
+  .panel{padding:20px 24px;max-width:900px}
+  .panel-title{font-family:var(--mono);font-size:13px;color:var(--teal);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase}
+  .panel-sub{color:var(--text2);font-size:12px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:12px}
+  
+  /* Eye SVG container */
+  .eye-stage{display:flex;justify-content:center;align-items:flex-start;gap:24px;flex-wrap:wrap}
+  .eye-svg-wrap{position:relative;flex-shrink:0}
+  .info-card{flex:1;min-width:240px;max-width:360px}
+  .info-card h3{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+  .info-card p{color:var(--text2);font-size:13px;line-height:1.7;margin-bottom:10px}
+  .badge{display:inline-block;font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:2px;letter-spacing:1px;margin-right:4px;margin-bottom:4px}
+  .badge-teal{background:rgba(0,212,170,.1);color:var(--teal);border:1px solid var(--teal3)}
+  .badge-amber{background:rgba(245,166,35,.1);color:var(--amber);border:1px solid var(--amber2)}
+  .badge-red{background:rgba(232,69,69,.1);color:var(--red);border:1px solid var(--red2)}
+  .badge-purple{background:rgba(167,139,250,.1);color:var(--purple);border:1px solid var(--purple2)}
+  
+  /* Structure grid */
+  .struct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:16px}
+  .struct-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;cursor:pointer;transition:all .2s}
+  .struct-card:hover,.struct-card.sel{border-color:var(--teal);background:var(--surface2)}
+  .struct-card.sel{box-shadow:0 0 0 1px var(--teal3) inset}
+  .struct-card-title{font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:1px;margin-bottom:4px}
+  .struct-card-body{color:var(--text2);font-size:12px;line-height:1.5}
+  
+  /* Layer stack */
+  .layer-stack{display:flex;flex-direction:column;gap:2px;margin:16px 0}
+  .layer-row{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:4px;cursor:pointer;transition:all .15s;border:1px solid transparent}
+  .layer-row:hover{border-color:var(--border2);background:var(--surface)}
+  .layer-row.active{border-color:var(--teal);background:var(--surface2)}
+  .layer-color{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+  .layer-name{font-size:13px;font-weight:500;min-width:160px}
+  .layer-detail{font-size:12px;color:var(--text3);flex:1}
+  .layer-tag{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:2px}
+  
+  /* Disease cards */
+  .disease-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:12px}
+  .disease-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px;cursor:pointer;transition:all .2s;border-left:3px solid var(--border)}
+  .disease-card:hover,.disease-card.sel{border-left-color:var(--red);background:var(--surface2)}
+  .disease-card-cat{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .disease-card-name{font-size:13px;font-weight:600;margin-bottom:6px}
+  .disease-card-desc{font-size:12px;color:var(--text2);line-height:1.5}
+  
+  /* Surgical steps */
+  .surg-steps{display:flex;flex-direction:column;gap:2px;margin-top:16px}
+  .surg-step{display:flex;gap:14px;padding:12px;border:1px solid var(--border);border-radius:5px;cursor:pointer;transition:all .15s}
+  .surg-step:hover,.surg-step.active{border-color:var(--amber);background:rgba(245,166,35,.04)}
+  .step-num{font-family:var(--mono);font-size:11px;color:var(--amber);min-width:32px;padding-top:2px}
+  .step-content-inner{}
+  .step-title{font-size:13px;font-weight:500;margin-bottom:3px}
+  .step-note{font-size:12px;color:var(--text2)}
+  .step-warn{font-size:11px;color:var(--red);margin-top:4px;font-family:var(--mono)}
+  
+  /* Pathway viz */
+  .pathway{display:flex;flex-direction:column;gap:0;margin:16px 0}
+  .pw-node{display:flex;align-items:flex-start;gap:12px}
+  .pw-line-col{display:flex;flex-direction:column;align-items:center;width:24px;flex-shrink:0}
+  .pw-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--teal);background:var(--bg);flex-shrink:0;margin-top:4px}
+  .pw-dot.active{background:var(--teal)}
+  .pw-seg{width:2px;flex:1;background:linear-gradient(var(--teal3),var(--border));min-height:20px}
+  .pw-body{padding:0 0 16px}
+  .pw-title{font-size:13px;font-weight:500;color:var(--text)}
+  .pw-desc{font-size:12px;color:var(--text2);margin-top:2px}
+  
+  /* Nerve map */
+  .nerve-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:12px}
+  .nerve-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;border-top:2px solid}
+  .nc-purple{border-top-color:var(--purple)}
+  .nc-teal{border-top-color:var(--teal)}
+  .nc-amber{border-top-color:var(--amber)}
+  .nc-blue{border-top-color:var(--blue)}
+  .nc-red{border-top-color:var(--red)}
+  .nerve-id{font-family:var(--mono);font-size:11px;margin-bottom:4px}
+  .nerve-name{font-size:13px;font-weight:600;margin-bottom:6px}
+  .nerve-rows{display:flex;flex-direction:column;gap:4px}
+  .nerve-row{display:flex;gap:8px;font-size:12px}
+  .nerve-label{color:var(--text3);min-width:80px}
+  .nerve-val{color:var(--text2)}
+  
+  /* Clinical case */
+  .case-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:14px}
+  .case-hx{font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.8;margin-bottom:10px}
+  .case-question{font-size:14px;font-weight:500;color:var(--amber);margin-bottom:12px}
+  .case-opts{display:flex;flex-direction:column;gap:6px}
+  .case-opt{padding:9px 14px;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:13px;transition:all .15s;text-align:left;background:transparent;color:var(--text);width:100%}
+  .case-opt:hover{border-color:var(--blue);background:rgba(77,168,255,.05)}
+  .case-opt.correct{border-color:var(--green);background:rgba(74,222,128,.07);color:var(--green)}
+  .case-opt.wrong{border-color:var(--red);background:rgba(232,69,69,.06);color:var(--red)}
+  .case-feedback{margin-top:12px;padding:10px 14px;border-radius:4px;font-size:13px;line-height:1.6}
+  .feedback-correct{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);color:var(--green)}
+  .feedback-wrong{background:rgba(232,69,69,.08);border:1px solid rgba(232,69,69,.25);color:#ff8080}
+  .next-btn{margin-top:10px;padding:8px 18px;background:transparent;border:1px solid var(--teal);color:var(--teal);border-radius:4px;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:1px;transition:all .15s}
+  .next-btn:hover{background:rgba(0,212,170,.1)}
+  
+  /* Scroll helpers */
+  ::-webkit-scrollbar{width:5px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  
+  /* Responsive for small iframe */
+  @media(max-width:600px){.sidebar{width:160px}.panel{padding:14px 16px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">Wolff <span>//</span> Ophthalmology Atlas <span>// 8th Ed</span></div>
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tab-anatomy" onclick="setMode('anatomy')">ANATOMY</button>
+    <button class="mode-tab" id="tab-surgical" onclick="setMode('surgical')">SURGICAL</button>
+    <button class="mode-tab" id="tab-disease" onclick="setMode('disease')">DISEASE</button>
+    <button class="mode-tab" id="tab-clinical" onclick="setMode('clinical')">CLINICAL</button>
+  </div>
+</div>
+
+<div class="main">
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar"></div>
+
+<!-- CONTENT -->
+<div class="content" id="content-area"></div>
+</div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+
+const ANATOMY_SECTIONS = [
+  {id:'orbit',label:'Bony Orbit',icon:'○'},
+  {id:'eyeball',label:'Eyeball Layers',icon:'◉'},
+  {id:'anterior',label:'Anterior Segment',icon:'◑'},
+  {id:'posterior',label:'Posterior Segment',icon:'◐'},
+  {id:'adnexa',label:'Ocular Adnexa',icon:'◫'},
+  {id:'eom',label:'Extraocular Muscles',icon:'⊞'},
+  {id:'nerves',label:'Cranial Nerves',icon:'⌾'},
+  {id:'pathway',label:'Visual Pathway',icon:'→'},
+];
+
+const SURGICAL_SECTIONS = [
+  {id:'phaco',label:'Phacoemulsification'},
+  {id:'vitrect',label:'Vitrectomy'},
+  {id:'lasik',label:'LASIK'},
+  {id:'trabeculect',label:'Trabeculectomy'},
+];
+
+const DISEASE_SECTIONS = [
+  {id:'corneal',label:'Corneal Disease'},
+  {id:'lens-d',label:'Lens / Cataract'},
+  {id:'glaucoma',label:'Glaucoma'},
+  {id:'retinal',label:'Retinal Disease'},
+  {id:'optic',label:'Optic Nerve'},
+];
+
+const CLINICAL_CASES = [
+  {
+    hx:`CC: 65 y/o M, sudden onset flashing lights + curtain falling over right eye × 2 hours.
+VA: 6/60 right, 6/6 left.
+IOP: 12 mmHg (R), 14 mmHg (L).
+Fundus: Corrugated retinal surface, vitreous pigment cells (Shafer's sign).`,
+    q:"What is the most likely diagnosis?",
+    opts:["Vitreous haemorrhage","Rhegmatogenous retinal detachment","Central retinal artery occlusion","Acute angle-closure glaucoma"],
+    ans:1,
+    fb:"Rhegmatogenous RD is the diagnosis. Shafer's sign (tobacco dust = pigment cells in vitreous) is pathognomonic. The corrugated retinal surface confirms sensory retina elevation from the RPE due to liquefied vitreous entering through a retinal break. Surgical urgency: macula-off RD requires same-day/next-day intervention."
+  },
+  {
+    hx:`CC: 45 y/o F, progressive loss of peripheral vision. Denies pain.
+VA: 6/6 bilaterally.
+IOP: 26 mmHg bilateral.
+Disc: CDR 0.8 bilaterally, cup asymmetry.
+Humphrey VF: Superior arcuate scotoma right eye.`,
+    q:"The trabecular meshwork pathology here primarily affects which aqueous drainage route?",
+    opts:["Uveoscleral outflow","Conventional (trabecular) outflow","Episcleral venous pressure","Ciliary epithelium secretion"],
+    ans:1,
+    fb:"Primary open angle glaucoma involves resistance at the juxtacanalicular trabecular meshwork (JCT), impairing conventional aqueous outflow to Schlemm's canal → collector channels → aqueous veins. This raises IOP progressively, causing RGC axon loss at the lamina cribrosa — the anatomical basis of arcuate scotoma mapping to the nerve fibre layer."
+  },
+  {
+    hx:`CC: 30 y/o M, sudden onset severe periorbital pain, diplopia, proptosis after sinus infection.
+Temp: 38.8°C.
+Exam: Proptosis 5mm, restricted EOM in all directions, chemosis, relative afferent pupillary defect (RAPD).`,
+    q:"Which orbital wall is most likely breached, allowing spread from the ethmoid sinus?",
+    opts:["Orbital roof (frontal bone)","Medial wall (lamina papyracea)","Lateral wall (zygomatic + sphenoid)","Orbital floor (maxilla)"],
+    ans:1,
+    fb:"The lamina papyracea (paper-thin medial orbital wall, formed by the ethmoid bone) is the thinnest orbital wall — as little as 0.5mm. It is the most common route for orbital cellulitis to spread from ethmoid sinusitis. RAPD here signals optic nerve compromise — this is a surgical emergency requiring IV antibiotics and likely drainage."
+  },
+  {
+    hx:`CC: 28 y/o F, referred for optic disc swelling bilaterally.
+VA: 6/9 bilaterally.
+BMI: 38. On oral contraceptive pill.
+Lumbar puncture: Opening pressure 28 cmH₂O.
+MRI brain/MRV: Normal.`,
+    q:"What mechanism causes the bilateral disc swelling in this presentation?",
+    opts:["Optic neuritis (demyelination)","Raised intracranial pressure transmitted via perioptic subarachnoid space","Central retinal vein occlusion","Leber hereditary optic neuropathy"],
+    ans:1,
+    fb:"Idiopathic intracranial hypertension (IIH / pseudotumor cerebri). Raised ICP is transmitted directly along the perioptic subarachnoid space to the optic nerve head, impairing axoplasmic flow and causing papilledema (true disc swelling). Risk factors: female, obese, OCP. The optic canal and perioptic meningeal sheaths form the anatomical conduit for this pressure transmission."
+  },
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let mode = 'anatomy';
+let activeSection = 'orbit';
+let activeSurgical = 'phaco';
+let activeDisease = 'corneal';
+let caseIdx = 0;
+let caseAnswered = false;
+let selectedLayer = null;
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function setMode(m){
+  mode = m;
+  ['anatomy','surgical','disease','clinical'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===m);
+  });
+  if(m==='anatomy') activeSection='orbit';
+  if(m==='surgical') activeSurgical='phaco';
+  if(m==='disease') activeDisease='corneal';
+  renderAll();
+}
+
+function renderAll(){
+  renderSidebar();
+  renderContent();
+}
+
+function renderSidebar(){
+  const sb = document.getElementById('sidebar');
+  if(mode==='anatomy'){
+    sb.innerHTML = `<div class="nav-section"><div class="nav-label">Systems</div>` +
+      ANATOMY_SECTIONS.map(s=>`
+        <div class="nav-item${activeSection===s.id?' active':''}" onclick="selectSection('${s.id}')">
+          <span class="nav-dot"></span>${s.label}
+        </div>`).join('')+`</div>`;
+  } else if(mode==='surgical'){
+    sb.innerHTML = `<div class="nav-section"><div class="nav-label">Procedures</div>` +
+      SURGICAL_SECTIONS.map(s=>`
+        <div class="nav-item${activeSurgical===s.id?' active':''}" onclick="selectSurgical('${s.id}')">
+          <span class="nav-dot"></span>${s.label}
+        </div>`).join('')+`</div>`;
+  } else if(mode==='disease'){
+    sb.innerHTML = `<div class="nav-section"><div class="nav-label">Categories</div>` +
+      DISEASE_SECTIONS.map(s=>`
+        <div class="nav-item${activeDisease===s.id?' active':''}" onclick="selectDisease('${s.id}')">
+          <span class="nav-dot"></span>${s.label}
+        </div>`).join('')+`</div>`;
+  } else {
+    sb.innerHTML = `<div class="nav-section"><div class="nav-label">Cases</div>` +
+      CLINICAL_CASES.map((c,i)=>`
+        <div class="nav-item${caseIdx===i?' active':''}" onclick="selectCase(${i})">
+          <span class="nav-dot"></span>Case ${i+1}
+        </div>`).join('')+`</div>`;
+  }
+}
+
+function selectSection(id){activeSection=id;selectedLayer=null;renderAll();}
+function selectSurgical(id){activeSurgical=id;renderAll();}
+function selectDisease(id){activeDisease=id;renderAll();}
+function selectCase(i){caseIdx=i;caseAnswered=false;renderAll();}
+
+function renderContent(){
+  const ca = document.getElementById('content-area');
+  if(mode==='anatomy') ca.innerHTML = renderAnatomy();
+  else if(mode==='surgical') ca.innerHTML = renderSurgical();
+  else if(mode==='disease') ca.innerHTML = renderDisease();
+  else ca.innerHTML = renderClinical();
+}
+
+// ─── ANATOMY PANELS ──────────────────────────────────────────────────────────
+function renderAnatomy(){
+  const s = activeSection;
+  if(s==='orbit') return renderOrbit();
+  if(s==='eyeball') return renderEyeball();
+  if(s==='anterior') return renderAnterior();
+  if(s==='posterior') return renderPosterior();
+  if(s==='adnexa') return renderAdnexa();
+  if(s==='eom') return renderEOM();
+  if(s==='nerves') return renderNerves();
+  if(s==='pathway') return renderPathway();
+  return '';
+}
+
+function renderOrbit(){
+  return `<div class="panel">
+  <div class="panel-title">Bony Orbit</div>
+  <div class="panel-sub">7-bone pyramidal cavity — Wolff Ch. 1 | Volume ~30 mL | Axis 45° lateral to sagittal plane</div>
+  <div class="eye-stage">
+    <div class="eye-svg-wrap">${orbitSVG()}</div>
+    <div class="info-card">
+      <h3>Orbital Bones</h3>
+      <div class="struct-grid">
+        ${[
+          {t:'Frontal',d:'Forms roof + part of lateral wall. Contains lacrimal fossa (superomedial).'},
+          {t:'Zygomatic',d:'Lateral wall (strongest). Separates orbit from temporal fossa.'},
+          {t:'Maxilla',d:'Floor & medial wall. Roof of maxillary sinus — floor fractures common.'},
+          {t:'Sphenoid',d:'Greater + lesser wings. Contains optic canal, SOF. Apex bone.'},
+          {t:'Ethmoid',d:'Lamina papyracea — thinnest wall (0.2–0.4 mm). Medial wall.'},
+          {t:'Lacrimal',d:'Medial wall + lacrimal sac fossa (with maxilla). Anterior ethmoidal cells.'},
+          {t:'Palatine',d:'Small contribution to orbital floor and medial wall, posteriorly.'},
+        ].map(b=>`<div class="struct-card"><div class="struct-card-title">${b.t}</div><div class="struct-card-body">${b.d}</div></div>`).join('')}
+      </div>
+      <h3 style="margin-top:16px">Key Foramina</h3>
+      <div class="layer-stack">
+        ${[
+          {n:'Optic canal',c:'#a78bfa',d:'CN II + ophthalmic artery. Lesser wing of sphenoid. ~5 mm long.'},
+          {n:'Superior orbital fissure',c:'#4da8ff',d:'CN III, IV, V1 branches, CN VI, superior ophthalmic vein.'},
+          {n:'Inferior orbital fissure',c:'#00d4aa',d:'CN V2 (infraorbital), zygomatic nerve, inferior ophthalmic vein.'},
+          {n:'Anterior ethmoidal',c:'#f5a623',d:'Anterior ethmoidal nerve & artery → anterior cranial fossa.'},
+          {n:'Posterior ethmoidal',c:'#e84545',d:'Posterior ethmoidal nerve & artery → ethmoid sinuses.'},
+          {n:'Supraorbital notch',c:'#4ade80',d:'Supraorbital nerve (V1) + artery → forehead.'},
+        ].map(r=>`<div class="layer-row">
+          <div class="layer-color" style="background:${r.c}"></div>
+          <div class="layer-name" style="color:${r.c};font-size:12px">${r.n}</div>
+          <div class="layer-detail">${r.d}</div>
+        </div>`).join('')}
+      </div>
+      <h3 style="margin-top:14px">Surgical Danger Zones</h3>
+      <p style="font-size:12px;color:var(--text2)">
+        <span class="badge badge-red">RISK</span> Medial wall (lamina papyracea) — penetration → ethmoid sinusitis, orbital haemorrhage<br>
+        <span class="badge badge-red">RISK</span> Orbital floor — blowout fracture, inferior rectus entrapment, infraorbital nerve palsy<br>
+        <span class="badge badge-amber">WARN</span> Optic canal region — excessive traction during orbital apex surgery risks CN II injury<br>
+        <span class="badge badge-amber">WARN</span> SOF — pressure/haematoma compresses CN III/IV/VI → ophthalmoplegia
+      </p>
+    </div>
+  </div>
+  </div>`;
+}
+
+function orbitSVG(){
+  return `<svg width="280" height="280" viewBox="0 0 280 280">
+  <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#5a7a99" stroke-width="1.5"/></marker></defs>
+  <!-- Outer bony orbit -->
+  <ellipse cx="140" cy="130" rx="105" ry="95" fill="none" stroke="#3a5070" stroke-width="1.5"/>
+  <!-- Frontal (roof) -->
+  <path d="M60,70 Q140,30 220,70" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round"/>
+  <text x="140" y="50" text-anchor="middle" font-size="10" fill="#a78bfa" font-family="Space Mono">FRONTAL</text>
+  <!-- Lateral (zygomatic) -->
+  <path d="M220,70 Q245,130 215,195" fill="none" stroke="#4da8ff" stroke-width="3" stroke-linecap="round"/>
+  <text x="248" y="130" text-anchor="start" font-size="9" fill="#4da8ff" font-family="Space Mono">ZYGOMATIC</text>
+  <!-- Floor (maxilla) -->
+  <path d="M215,195 Q140,225 70,195" fill="none" stroke="#00d4aa" stroke-width="3" stroke-linecap="round"/>
+  <text x="140" y="222" text-anchor="middle" font-size="9" fill="#00d4aa" font-family="Space Mono">MAXILLA</text>
+  <!-- Medial (ethmoid/lacrimal) -->
+  <path d="M70,195 Q42,130 60,70" fill="none" stroke="#f5a623" stroke-width="3" stroke-linecap="round"/>
+  <text x="18" y="125" text-anchor="start" font-size="9" fill="#f5a623" font-family="Space Mono">ETHMOID</text>
+  <!-- Optic canal -->
+  <circle cx="175" cy="95" r="7" fill="rgba(167,139,250,.15)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="187" y="92" font-size="9" fill="#a78bfa" font-family="Space Mono">OC</text>
+  <!-- SOF -->
+  <ellipse cx="195" cy="115" rx="10" ry="6" fill="rgba(77,168,255,.15)" stroke="#4da8ff" stroke-width="1" transform="rotate(-30,195,115)"/>
+  <text x="207" y="118" font-size="9" fill="#4da8ff" font-family="Space Mono">SOF</text>
+  <!-- IOF -->
+  <ellipse cx="185" cy="155" rx="9" ry="5" fill="rgba(0,212,170,.15)" stroke="#00d4aa" stroke-width="1" transform="rotate(-10,185,155)"/>
+  <text x="200" y="158" font-size="9" fill="#00d4aa" font-family="Space Mono">IOF</text>
+  <!-- Lacrimal fossa -->
+  <ellipse cx="72" cy="90" rx="8" ry="6" fill="rgba(245,166,35,.15)" stroke="#f5a623" stroke-width="1"/>
+  <text x="25" y="85" font-size="9" fill="#f5a623" font-family="Space Mono">LACRIMAL</text>
+  <line x1="38" y1="86" x2="64" y2="89" stroke="#f5a623" stroke-width="0.5" stroke-dasharray="3 3"/>
+  <!-- Globe outline -->
+  <circle cx="140" cy="128" r="42" fill="rgba(0,212,170,.03)" stroke="#2a3d55" stroke-width="1" stroke-dasharray="4 4"/>
+  <!-- Lamina papyracea label -->
+  <text x="14" y="145" font-size="8" fill="#e84545" font-family="Space Mono">LAMINA</text>
+  <text x="14" y="155" font-size="8" fill="#e84545" font-family="Space Mono">PAPYRACEA</text>
+  <path d="M58,150 Q46,150 38,151" stroke="#e84545" stroke-width="0.5" fill="none" stroke-dasharray="3 2" marker-end="url(#arr)"/>
+  <!-- Sphenoid label -->
+  <text x="142" y="105" text-anchor="middle" font-size="9" fill="#9ab0cc" font-family="Space Mono">SPHENOID</text>
+  <text x="142" y="115" text-anchor="middle" font-size="8" fill="#5a7a99" font-family="Space Mono">(apex)</text>
+  </svg>`;
+}
+
+function renderEyeball(){
+  const layers = [
+    {n:'Epithelium',c:'#4da8ff',d:'5 layers of non-keratinized stratified squamous. Rapid regeneration (24–72h). CN V1 innervated — most sensitive tissue in body.',tag:'FIBROUS'},
+    {n:"Bowman's layer",c:'#6bc5ff',d:"Acellular condensed stroma. 8–12 μm. Does NOT regenerate — scarring permanent. Significance in LASIK flap.",tag:'FIBROUS'},
+    {n:'Corneal stroma',c:'#89d4ff',d:'90% corneal thickness (~500 μm). Hydrated collagen lamellae (Type I). Keratocytes between lamellae. Transparency due to regular lattice spacing.',tag:'FIBROUS'},
+    {n:"Descemet's membrane",c:'#a8dcff',d:"Basement membrane of endothelium. Thickens with age (3→10 μm). Detachment = Descemet's detachment (surgical complication).",tag:'FIBROUS'},
+    {n:'Endothelium',c:'#c2e8ff',d:'Single layer of hexagonal cells. Pump function (Na-K ATPase). 2,500–3,000 cells/mm². Non-regenerating — loss = corneal oedema.',tag:'FIBROUS'},
+    {n:'Sclera',c:'#d4e8d0',d:'Opaque fibrous coat. Collagen (Type I). 1 mm at posterior pole → 0.3 mm at EOM insertion. Emissary canals for vessels/nerves.',tag:'FIBROUS'},
+    {n:'Iris',c:'#e84545',d:'Two muscle layers: sphincter pupillae (CN III, circular) + dilator (sympathetic, radial). Stroma + posterior pigmented epithelium. Blood-aqueous barrier.',tag:'UVEAL'},
+    {n:'Ciliary body',c:'#ff6b6b',d:'Pars plana + pars plicata. Ciliary processes → aqueous secretion. Ciliary muscle (accommodation). Zonular fibres to lens. Surgical landmark: pars plana 3.5–4 mm post-limbus.',tag:'UVEAL'},
+    {n:'Choroid',c:'#ff8a8a',d:'Vascular layer. Choriocapillaris → Haller + Sattler layers → suprachoroid. Supplies outer retina. Bruch membrane separates from RPE.',tag:'UVEAL'},
+    {n:'Retinal pigment epithelium',c:'#f5a623',d:'Single layer. Phagocytoses outer segment discs. Vitamin A cycling. Tight junctions = outer BRB. RPE failure → AMD, detachment.',tag:'NEURAL'},
+    {n:'Photoreceptors (OS)',c:'#ffc347',d:'Rods (120M): peripheral, scotopic. Cones (6M): fovea, photopic. Outer segments shed/renewed daily. Opsins, transducin, PDE cascade.',tag:'NEURAL'},
+    {n:'Outer nuclear layer',c:'#ffd97a',d:'Rod and cone nuclei. Outer plexiform layer below (synapses with bipolar cells). Site of connection between 1st and 2nd order neurons.',tag:'NEURAL'},
+    {n:'Inner nuclear layer',c:'#ffe5a0',d:'Bipolar, horizontal, amacrine, Müller cells. Horizontal cells = lateral inhibition (contrast enhancement). Dopaminergic amacrine cells.',tag:'NEURAL'},
+    {n:'Ganglion cell layer',c:'#fff0c8',d:'RGC axons form optic nerve. ~1.2 million fibres. NFL thickest at superior/inferior poles. GCL thinning = glaucoma biomarker on OCT.',tag:'NEURAL'},
+  ];
+  return `<div class="panel">
+  <div class="panel-title">Eyeball — Layer Architecture</div>
+  <div class="panel-sub">Three-coat structure: Fibrous → Vascular (Uveal) → Neural | Wolff Ch. 4–8</div>
+  <div class="eye-stage">
+    <div class="eye-svg-wrap">${eyeballSVG()}</div>
+    <div class="info-card" style="flex:1;min-width:260px">
+      <h3>Anatomical Layers (click to detail)</h3>
+      <div class="layer-stack">
+        ${layers.map((l,i)=>`
+          <div class="layer-row${selectedLayer===i?' active':''}" onclick="selLayer(${i})">
+            <div class="layer-color" style="background:${l.c}"></div>
+            <div class="layer-name" style="font-size:12px">${l.n}</div>
+            <span class="layer-tag" style="background:rgba(255,255,255,.05);color:var(--text3);border:1px solid var(--border)">${l.tag}</span>
+          </div>
+          ${selectedLayer===i?`<div style="padding:8px 12px 8px 28px;background:var(--surface);border-radius:4px;margin-bottom:2px;font-size:12px;color:var(--text2);line-height:1.7">${l.d}</div>`:''}`
+        ).join('')}
+      </div>
+    </div>
+  </div>
+  </div>`;
+}
+
+function selLayer(i){selectedLayer=selectedLayer===i?null:i;renderContent();}
+
+function eyeballSVG(){
+  return `<svg width="260" height="260" viewBox="0 0 260 260">
+  <!-- Sclera -->
+  <circle cx="130" cy="130" r="100" fill="rgba(212,232,208,.07)" stroke="#d4e8d0" stroke-width="1.5"/>
+  <!-- Choroid -->
+  <circle cx="130" cy="130" r="92" fill="rgba(255,138,138,.07)" stroke="#ff8a8a" stroke-width="1"/>
+  <!-- Retina -->
+  <circle cx="130" cy="130" r="82" fill="rgba(255,211,122,.05)" stroke="#ffd97a" stroke-width="0.8"/>
+  <!-- Vitreous -->
+  <circle cx="130" cy="130" r="72" fill="rgba(77,168,255,.03)" stroke="none"/>
+  <!-- Cornea -->
+  <path d="M105,60 Q130,28 155,60" fill="rgba(77,168,255,.12)" stroke="#4da8ff" stroke-width="2"/>
+  <!-- Iris -->
+  <ellipse cx="130" cy="70" rx="22" ry="8" fill="rgba(232,69,69,.2)" stroke="#e84545" stroke-width="1"/>
+  <!-- Lens -->
+  <ellipse cx="130" cy="82" rx="14" ry="10" fill="rgba(245,166,35,.15)" stroke="#f5a623" stroke-width="1"/>
+  <!-- Pupil -->
+  <ellipse cx="130" cy="68" rx="6" ry="4" fill="#080c10"/>
+  <!-- Optic nerve -->
+  <rect x="158" y="118" width="40" height="20" rx="3" fill="rgba(167,139,250,.1)" stroke="#a78bfa" stroke-width="1"/>
+  <text x="178" y="132" text-anchor="middle" font-size="8" fill="#a78bfa" font-family="Space Mono">ON</text>
+  <!-- Macula dot -->
+  <circle cx="100" cy="128" r="5" fill="none" stroke="#f5a623" stroke-width="1" stroke-dasharray="2 2"/>
+  <text x="88" y="122" font-size="8" fill="#f5a623" font-family="Space Mono">MAC</text>
+  <!-- Fovea -->
+  <circle cx="100" cy="128" r="2" fill="#f5a623"/>
+  <!-- Ciliary body label -->
+  <text x="108" y="100" font-size="8" fill="#ff6b6b" font-family="Space Mono" text-anchor="middle">CB</text>
+  <!-- Labels -->
+  <text x="130" y="22" text-anchor="middle" font-size="9" fill="#4da8ff" font-family="Space Mono">CORNEA</text>
+  <text x="236" y="90" font-size="8" fill="#d4e8d0" font-family="Space Mono">SCLERA</text>
+  <text x="236" y="108" font-size="8" fill="#ff8a8a" font-family="Space Mono">CHOROID</text>
+  <text x="236" y="126" font-size="8" fill="#ffd97a" font-family="Space Mono">RETINA</text>
+  <!-- Lines to labels -->
+  <line x1="225" y1="87" x2="198" y2="83" stroke="#2a3d55" stroke-width="0.5"/>
+  <line x1="225" y1="105" x2="200" y2="108" stroke="#2a3d55" stroke-width="0.5"/>
+  <line x1="225" y1="123" x2="204" y2="123" stroke="#2a3d55" stroke-width="0.5"/>
+  <!-- Zonules (schematic) -->
+  <line x1="117" y1="80" x2="112" y2="95" stroke="#5a7a99" stroke-width="0.5" stroke-dasharray="2 2"/>
+  <line x1="143" y1="80" x2="148" y2="95" stroke="#5a7a99" stroke-width="0.5" stroke-dasharray="2 2"/>
+  </svg>`;
+}
+
+function renderAnterior(){
+  return `<div class="panel">
+  <div class="panel-title">Anterior Segment</div>
+  <div class="panel-sub">Cornea → Anterior chamber → Angle → Lens | Aqueous dynamics | Wolff Ch. 4 & 6</div>
+  <div class="eye-stage">
+    <div class="eye-svg-wrap">${anteriorSVG()}</div>
+    <div class="info-card">
+      <h3>Aqueous Humor Dynamics</h3>
+      <div class="pathway">
+        ${[
+          {t:'Ciliary epithelium (pars plicata)',d:'Active secretion (Na-K ATPase) + ultrafiltration. ~2.5 μL/min production rate.',a:true},
+          {t:'Posterior chamber',d:'Between iris and lens. Aqueous flows anterior through pupil.',a:false},
+          {t:'Pupillary aperture',d:'Pupil block = iris-lens contact → angle closure → raised IOP.',a:false},
+          {t:'Anterior chamber',d:'~250 μL volume. Depth 2.5–3.0 mm centrally. Shallow AC → angle closure risk.',a:false},
+          {t:'Trabecular meshwork (angle)',d:'Uveal, corneoscleral, juxtacanalicular layers. JCT = primary resistance site in POAG.',a:false},
+          {t:"Schlemm's canal",d:'Circumferential venous-like channel. Inner wall endothelium + giant vacuoles — transendothelial pores.',a:false},
+          {t:'Collector channels → aqueous veins',d:'25–30 channels. Drain to episcleral veins → superior ophthalmic vein → cavernous sinus.',a:false},
+        ].map((n,i,arr)=>`
+          <div class="pw-node">
+            <div class="pw-line-col">
+              <div class="pw-dot${n.a?' active':''}"></div>
+              ${i<arr.length-1?'<div class="pw-seg"></div>':''}
+            </div>
+            <div class="pw-body">
+              <div class="pw-title">${n.t}</div>
+              <div class="pw-desc">${n.d}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div style="margin-top:14px">
+        <span class="badge badge-teal">NORMAL IOP</span>10–21 mmHg
+        <span class="badge badge-amber" style="margin-left:8px">GLAUCOMA</span>&gt;21 mmHg sustained
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--text2)">
+        <strong style="color:var(--teal)">Uveoscleral outflow</strong> — 10–30% of drainage. Through ciliary muscle interstices → suprachoroidal space → scleral emissary canals. Increases with prostaglandin analogues.
+      </div>
+    </div>
+  </div>
+  </div>`;
+}
+
+function anteriorSVG(){
+  return `<svg width="250" height="280" viewBox="0 0 250 280">
+  <!-- Cornea layers -->
+  <path d="M60,60 Q125,5 190,60" fill="rgba(77,168,255,.1)" stroke="#4da8ff" stroke-width="2"/>
+  <!-- Epithelium line -->
+  <path d="M63,67 Q125,13 187,67" fill="none" stroke="#6bc5ff" stroke-width="1" stroke-dasharray="3 2"/>
+  <!-- Stroma bulk -->
+  <path d="M60,60 Q125,5 190,60 L188,75 Q125,22 62,75Z" fill="rgba(77,168,255,.06)"/>
+  <!-- Descemet -->
+  <path d="M62,75 Q125,22 188,75" fill="none" stroke="#a8dcff" stroke-width="1"/>
+  <!-- Endothelium -->
+  <path d="M62,79 Q125,26 188,79" fill="none" stroke="#c2e8ff" stroke-width="0.8"/>
+  <!-- AC -->
+  <path d="M62,80 Q125,27 188,80 L195,130 Q125,115 55,130Z" fill="rgba(0,212,170,.04)"/>
+  <!-- Iris -->
+  <line x1="55" y1="130" x2="95" y2="132" stroke="#e84545" stroke-width="3" stroke-linecap="round"/>
+  <line x1="155" y1="132" x2="195" y2="130" stroke="#e84545" stroke-width="3" stroke-linecap="round"/>
+  <!-- Pupil -->
+  <line x1="95" y1="132" x2="155" y2="132" stroke="#080c10" stroke-width="5"/>
+  <!-- Posterior chamber -->
+  <path d="M95,140 Q125,130 155,140 L155,165 Q125,155 95,165Z" fill="rgba(0,212,170,.03)" stroke="rgba(0,212,170,.2)" stroke-width="0.5"/>
+  <!-- Lens -->
+  <ellipse cx="125" cy="172" rx="32" ry="22" fill="rgba(245,166,35,.1)" stroke="#f5a623" stroke-width="1.2"/>
+  <!-- Nucleus -->
+  <ellipse cx="125" cy="172" rx="18" ry="12" fill="rgba(245,166,35,.08)" stroke="#f5a623" stroke-width="0.5" stroke-dasharray="3 2"/>
+  <!-- Ciliary body -->
+  <ellipse cx="58" cy="155" rx="10" ry="16" fill="rgba(255,107,107,.1)" stroke="#ff6b6b" stroke-width="1"/>
+  <ellipse cx="192" cy="155" rx="10" ry="16" fill="rgba(255,107,107,.1)" stroke="#ff6b6b" stroke-width="1"/>
+  <!-- Zonules -->
+  <line x1="67" y1="148" x2="93" y2="162" stroke="#5a7a99" stroke-width="0.8" stroke-dasharray="2 2"/>
+  <line x1="67" y1="163" x2="93" y2="175" stroke="#5a7a99" stroke-width="0.8" stroke-dasharray="2 2"/>
+  <line x1="183" y1="148" x2="157" y2="162" stroke="#5a7a99" stroke-width="0.8" stroke-dasharray="2 2"/>
+  <line x1="183" y1="163" x2="157" y2="175" stroke="#5a7a99" stroke-width="0.8" stroke-dasharray="2 2"/>
+  <!-- Sclera -->
+  <path d="M55,130 Q35,175 45,230" fill="none" stroke="#d4e8d0" stroke-width="2"/>
+  <path d="M195,130 Q215,175 205,230" fill="none" stroke="#d4e8d0" stroke-width="2"/>
+  <!-- TM angle -->
+  <circle cx="62" cy="88" r="4" fill="rgba(0,212,170,.3)" stroke="#00d4aa" stroke-width="1"/>
+  <circle cx="188" cy="88" r="4" fill="rgba(0,212,170,.3)" stroke="#00d4aa" stroke-width="1"/>
+  <!-- Schlemm -->
+  <ellipse cx="58" cy="93" rx="5" ry="3" fill="rgba(77,168,255,.2)" stroke="#4da8ff" stroke-width="0.8"/>
+  <ellipse cx="192" cy="93" rx="5" ry="3" fill="rgba(77,168,255,.2)" stroke="#4da8ff" stroke-width="0.8"/>
+  <!-- Labels -->
+  <text x="125" y="-1" text-anchor="middle" font-size="8" fill="#4da8ff" font-family="Space Mono">EPITHELIUM → ENDOTHELIUM</text>
+  <text x="6" y="90" font-size="7" fill="#00d4aa" font-family="Space Mono">TM</text>
+  <text x="5" y="100" font-size="7" fill="#4da8ff" font-family="Space Mono">SC</text>
+  <text x="5" y="155" font-size="7" fill="#ff6b6b" font-family="Space Mono">CB</text>
+  <text x="125" y="172" text-anchor="middle" font-size="8" fill="#f5a623" font-family="Space Mono">LENS</text>
+  <text x="125" y="52" text-anchor="middle" font-size="8" fill="#9ab0cc" font-family="Space Mono">ANTERIOR CHAMBER</text>
+  <text x="125" y="148" text-anchor="middle" font-size="8" fill="#5a7a99" font-family="Space Mono">POST. CH.</text>
+  </svg>`;
+}
+
+function renderPosterior(){
+  return `<div class="panel">
+  <div class="panel-title">Posterior Segment</div>
+  <div class="panel-sub">Vitreous body — Retina (10 layers) — Macula — Optic disc | Wolff Ch. 8–10</div>
+  <div class="eye-stage">
+    <div class="eye-svg-wrap">${posteriorSVG()}</div>
+    <div class="info-card">
+      <h3>Retinal Layers (Inner → Outer)</h3>
+      <div class="layer-stack">
+        ${[
+          {n:'Internal limiting membrane',c:'#ffffff',d:'Basal lamina of Müller cells. Inner boundary. Target in macular surgery (ILM peeling).'},
+          {n:'Nerve fibre layer',c:'#e8f0fe',d:'RGC axons. Thickest superior/inferior poles. OCT measurement site for glaucoma.'},
+          {n:'Ganglion cell layer',c:'#c5d8f8',d:'RGC somas. Thickened at macula (2–8 cells). Absent at fovea.'},
+          {n:'Inner plexiform layer',c:'#a3c0f5',d:'Synapses between bipolar, amacrine, RGC dendrites.'},
+          {n:'Inner nuclear layer',c:'#80a8f0',d:'Bipolar, horizontal, amacrine, Müller cell nuclei.'},
+          {n:'Outer plexiform layer',c:'#5d90ea',d:'Synapses between photoreceptor pedicles/spherules and bipolar/horizontal cells.'},
+          {n:'Outer nuclear layer',c:'#3a78e5',d:'Rod and cone nuclei.'},
+          {n:'Outer segments (IS/OS)',c:'#f5a623',d:'Photoreceptor inner + outer segments. Discs with opsin. Daily renewal by RPE phagocytosis.'},
+          {n:'RPE',c:'#e84545',d:'Retinal pigment epithelium. Outer blood-retinal barrier. Vitamin A cycle. Single hexagonal cell layer.'},
+          {n:"Bruch's membrane",c:'#ff8a8a',d:'5-layer structure: BM of RPE + inner collagenous zone + elastic layer + outer collagenous + choriocapillaris BM. Thickens in AMD.'},
+        ].map(l=>`<div class="layer-row">
+          <div class="layer-color" style="background:${l.c}"></div>
+          <div class="layer-name" style="font-size:11px">${l.n}</div>
+          <div class="layer-detail" style="font-size:11px">${l.d}</div>
+        </div>`).join('')}
+      </div>
+      <div style="margin-top:14px">
+        <span class="badge badge-teal">MACULA</span> 5.5 mm, centred 4 mm temporal to disc<br>
+        <span class="badge badge-purple">FOVEA</span> 1.5 mm — cone-only, GCL absent<br>
+        <span class="badge badge-amber">FOVEOLA</span> 0.35 mm — thinnest retina (130 μm)
+      </div>
+    </div>
+  </div>
+  </div>`;
+}
+
+function posteriorSVG(){
+  const layers=[
+    ['#e8f0fe','ILM'],['#c5d8f8','NFL'],['#a3c0f5','GCL'],['#80a8f0','IPL'],
+    ['#5d90ea','INL'],['#3a78e5','OPL'],['#2060d0','ONL'],
+    ['#f5a623','IS/OS'],['#e84545','RPE'],['#ff8a8a',"Bruch's"],
+  ];
+  const h=16, startY=20, x=40, w=200;
+  let svg=`<svg width="260" height="${layers.length*h+100}" viewBox="0 0 260 ${layers.length*h+100}">`;
+  layers.forEach((l,i)=>{
+    const y=startY+i*h;
+    svg+=`<rect x="${x}" y="${y}" width="${w}" height="${h-1}" fill="${l[0]}" opacity="0.8" rx="1"/>
+      <text x="${x+4}" y="${y+h-5}" font-size="8" fill="#080c10" font-family="Space Mono" font-weight="700">${l[1]}</text>`;
+  });
+  const discX=x+w+20,mY=startY+layers.length*h/2;
+  svg+=`<text x="${x+w/2}" y="${startY-6}" text-anchor="middle" font-size="9" fill="#9ab0cc" font-family="Space Mono">← VITREOUS</text>`;
+  // Macula + disc
+  const botY=startY+layers.length*h+20;
+  svg+=`<text x="20" y="${botY+8}" font-size="8" fill="#f5a623" font-family="Space Mono">FOVEA</text>
+    <circle cx="65" cy="${botY+4}" r="3" fill="#f5a623"/>
+    <text x="110" y="${botY+8}" font-size="8" fill="#9ab0cc" font-family="Space Mono">DISC (blind spot)</text>
+    <rect x="155" y="${botY}" width="28" height="8" rx="2" fill="rgba(167,139,250,.2)" stroke="#a78bfa" stroke-width="0.8"/>
+    <text x="175" y="${botY+6}" text-anchor="middle" font-size="7" fill="#a78bfa" font-family="Space Mono">ONH</text>`;
+  svg+=`</svg>`;
+  return svg;
+}
+
+function renderAdnexa(){
+  return `<div class="panel">
+  <div class="panel-title">Ocular Adnexa</div>
+  <div class="panel-sub">Eyelids · Conjunctiva · Lacrimal apparatus | Wolff Ch. 2</div>
+  <div class="struct-grid">
+    ${[
+      {t:'Eyelid — Anterior lamella',d:'Skin (thinnest body skin, 0.5–2 mm), orbicularis oculi (CN VII). Preseptal + pretarsal divisions.'},
+      {t:'Eyelid — Middle lamella',d:'Orbital septum (periosteum reflection). Barrier between superficial and orbital fat. Key in ptosis surgery.'},
+      {t:'Eyelid — Posterior lamella',d:'Tarsus (fibrocartilaginous, 10 mm upper, 4–5 mm lower) + conjunctiva. Contains Meibomian glands (25–30 per lid).'},
+      {t:'Levator palpebrae superioris',d:'CN III. Arises from lesser wing of sphenoid. Inserts into upper lid skin + tarsus via aponeurosis. Primary elevator. Normal excursion 15 mm.'},
+      {t:"Müller's muscle",d:'Superior tarsal muscle. Sympathetic (Horner syndrome → 2 mm ptosis). Fast-acting tone maintenance.'},
+      {t:'Conjunctiva — Palpebral',d:'Lines inner eyelids. Goblet cells (mucin layer of tear film). Fornix = most lax portion. Superior fornix 10 mm depth.'},
+      {t:'Conjunctiva — Bulbar',d:'Loosely covers sclera. Perilimbal zone = limbal stem cell niche. Subconjunctival route for drug delivery.'},
+      {t:'Lacrimal gland',d:'Orbital + palpebral lobes. CN VII secretomotor via pterygopalatine ganglion. 12 excretory ducts into superior fornix. Serous secretion.'},
+      {t:'Tear drainage',d:'Puncta → canaliculi → lacrimal sac (lacrimal fossa) → nasolacrimal duct → inferior meatus. 30-minute drainage time.'},
+      {t:'Tear film layers',d:'Outer lipid (Meibomian) → aqueous (lacrimal) → mucin (goblet cells). Total thickness ~7–8 μm. Stability 10–30 sec (TBUT).'},
+    ].map(s=>`<div class="struct-card"><div class="struct-card-title">${s.t}</div><div class="struct-card-body">${s.d}</div></div>`).join('')}
+  </div>
+  </div>`;
+}
+
+function renderEOM(){
+  return `<div class="panel">
+  <div class="panel-title">Extraocular Muscles</div>
+  <div class="panel-sub">6 EOMs + Levator | Origins · Insertions · Actions · Nerve supply | Wolff Ch. 3</div>
+  <div class="layer-stack">
+    ${[
+      {n:'Medial rectus',c:'#4da8ff',nn:'CN III (inferior division)',orig:'Annulus of Zinn (common tendinous ring)',ins:'Medial sclera, 5.5 mm from limbus',action:'Adduction',clin:'Most powerful EOM. Medial deviation = CN III palsy or MR overaction.'},
+      {n:'Lateral rectus',c:'#f5a623',nn:'CN VI (abducent)',orig:'Annulus of Zinn (lateral portion)',ins:'Lateral sclera, 6.9 mm from limbus',action:'Abduction',clin:'CN VI most commonly compressed intracranially (long intracranial course). Lateral deviation = CN VI palsy.'},
+      {n:'Superior rectus',c:'#4ade80',nn:'CN III (superior division)',orig:'Annulus of Zinn (superior)',ins:'Superior sclera, 7.7 mm from limbus',action:'Elevation, intorsion, adduction',clin:'Synergistic with inferior oblique for elevation. 23° angle with visual axis — acts also on torsion.'},
+      {n:'Inferior rectus',c:'#e84545',nn:'CN III (inferior division)',orig:'Annulus of Zinn (inferior)',ins:'Inferior sclera, 6.5 mm from limbus',action:'Depression, extorsion, adduction',clin:'Inferior blowout fracture → entrapment of IR → diplopia on upgaze. Also depresses pupil (surgical concern).'},
+      {n:'Superior oblique',c:'#a78bfa',nn:'CN IV (trochlear)',orig:'Body of sphenoid (superior to Annulus)',ins:'Superotemporal quadrant of posterior sclera (via trochlea)',action:'Intorsion (primary), depression, abduction',clin:'CN IV palsy → vertical diplopia, head tilt (Bielschowsky). Longest intracranial nerve. Most affected by closed head trauma.'},
+      {n:'Inferior oblique',c:'#ff6b6b',nn:'CN III (inferior division)',orig:'Orbital floor (lateral to nasolacrimal groove) — only EOM not from apex',ins:'Inferotemporal quadrant, posterior sclera',action:'Extorsion (primary), elevation, abduction',clin:'Primary overaction causes V-pattern. Weakening = inferior oblique recession or myectomy.'},
+      {n:'Levator palpebrae',c:'#00d4aa',nn:'CN III (superior division) + sympathetic (Müller)',orig:'Lesser wing of sphenoid, above SO',ins:'Upper lid skin, tarsal plate, conjunctival fornix',action:'Eyelid elevation',clin:'Aponeurotic dehiscence = acquired ptosis. CN III palsy = complete ptosis (95% in complete palsy).'},
+    ].map(m=>`
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:12px;border-left:3px solid ${m.c};margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <span style="font-family:var(--mono);font-size:11px;color:${m.c};min-width:140px">${m.n}</span>
+          <span class="badge badge-purple">${m.nn}</span>
+          <span style="font-size:11px;color:var(--teal)">Action: ${m.action}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:var(--text2)">
+          <div><span style="color:var(--text3)">Origin: </span>${m.orig}</div>
+          <div><span style="color:var(--text3)">Insertion: </span>${m.ins}</div>
+        </div>
+        <div style="margin-top:6px;font-size:12px;color:var(--text3)"><span class="badge badge-amber">CLINICAL</span>${m.clin}</div>
+      </div>`).join('')}
+  </div>
+  </div>`;
+}
+
+function renderNerves(){
+  return `<div class="panel">
+  <div class="panel-title">Cranial Nerve Supply</div>
+  <div class="panel-sub">CN II · III · IV · V (V1/V2) · VI | Ganglia · Reflexes | Wolff Ch. 5</div>
+  <div class="nerve-grid">
+    ${[
+      {id:'CN II',name:'Optic Nerve',cls:'nc-purple',rows:[
+        ['Fibres','~1.2M RGC axons'],
+        ['Segments','Intraocular (1mm), orbital (25mm), intracanalicular (10mm), intracranial (10mm)'],
+        ['Sheath','Dura + arachnoid + pia (CSF in subarachnoid space)'],
+        ['Decussation','Nasal fibres cross at chiasm (~53%)'],
+        ['Reflex','Afferent limb of light reflex (via pretectal nucleus)'],
+        ['Clinical','Optic neuritis, papilledema, compressive lesions → RAPD'],
+      ]},
+      {id:'CN III',name:'Oculomotor',cls:'nc-teal',rows:[
+        ['Nuclei','Oculomotor nucleus (Edinger-Westphal for parasympathetic)'],
+        ['Superior div','Levator palpebrae + superior rectus'],
+        ['Inferior div','MR, IR, IO + ciliary ganglion (pupil, accommodation)'],
+        ['Course','Between PCA and SCA → through cavernous sinus (lateral wall)'],
+        ['Clinical','Complete palsy: ptosis + "down-and-out" + mydriasis. Pupil = parasympathetic. Surgical third = pupil involved.'],
+        ['Reflex','Efferent: light reflex (miosis), accommodation-convergence'],
+      ]},
+      {id:'CN IV',name:'Trochlear',cls:'nc-amber',rows:[
+        ['Nucleus','Dorsal midbrain (contralateral supply)'],
+        ['Course','Only CN to exit dorsal brainstem; longest intracranial course (~75mm)'],
+        ['Supply','Superior oblique only'],
+        ['Clinical','Head tilt to opposite side. Bielschowsky test positive. Most common after head trauma.'],
+        ['Test','Bielschowsky: tilt head ipsilateral → hypertropia increases'],
+        ['Anatomy','Passes around SO trochlea → inserts posterosuperotemporal'],
+      ]},
+      {id:'CN V1',name:'Ophthalmic (V1)',cls:'nc-blue',rows:[
+        ['Origin','Trigeminal (Gasserian) ganglion'],
+        ['Branches','Nasociliary, frontal, lacrimal'],
+        ['Nasociliary','Long ciliary n. (corneal sensation + sympathetics), ant. ethmoidal, infratrochlear'],
+        ['Frontal','Supraorbital + supratrochlear → forehead sensation'],
+        ['Lacrimal','Carries secretomotor fibres from CN VII via zygomaticotemporal anastomosis'],
+        ['Clinical','Herpes zoster ophthalmicus (V1 distribution). Hutchinson sign = nasociliary involvement.'],
+      ]},
+      {id:'CN VI',name:'Abducent',cls:'nc-red',rows:[
+        ['Nucleus','Pons (also contains CN VII fibres = facial colliculus)'],
+        ['Course','Long basal cistern course → Dorello canal → cavernous sinus → SOF → lateral rectus'],
+        ['Supply','Lateral rectus exclusively'],
+        ['Clinical','Raised ICP → false localising sign (stretching). Pontine lesion → ipsilateral gaze palsy.'],
+        ['Cavernous sinus','Lies free within sinus (vs CN III,IV,V1 in lateral wall) → vulnerable to cavernous sinus thrombosis'],
+      ]},
+    ].map(n=>`<div class="nerve-card ${n.cls}">
+      <div class="nerve-id">${n.id}</div>
+      <div class="nerve-name">${n.name}</div>
+      <div class="nerve-rows">
+        ${n.rows.map(r=>`<div class="nerve-row"><span class="nerve-label">${r[0]}</span><span class="nerve-val">${r[1]}</span></div>`).join('')}
+      </div>
+    </div>`).join('')}
+  </div>
+  <!-- Ciliary ganglion -->
+  <div style="margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px">
+    <div class="struct-card-title">CILIARY GANGLION</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.8;margin-top:6px">
+      Located in orbital fat lateral to optic nerve (~10mm from globe). 3 roots: <strong style="color:var(--purple)">Parasympathetic root</strong> (CN III inferior division → Edinger-Westphal → constrictor pupillae + ciliary muscle) | <strong style="color:var(--teal)">Sympathetic root</strong> (internal carotid plexus → passes through ganglion without synapsing → dilator pupillae) | <strong style="color:var(--blue)">Sensory root</strong> (nasociliary branch of V1 → passes through without synapsing). <span class="badge badge-teal">CLINICAL</span> Blocked in retrobulbar anaesthesia — akinesia + analgesia + mydriasis.
+    </div>
+  </div>
+  </div>`;
+}
+
+function renderPathway(){
+  return `<div class="panel">
+  <div class="panel-title">Visual Pathway</div>
+  <div class="panel-sub">Retina → Optic nerve → Chiasm → Tract → LGN → Radiations → V1 cortex | Lesion mapping</div>
+  <div class="eye-stage">
+    <div class="eye-svg-wrap">${pathwaySVG()}</div>
+    <div class="info-card">
+      <h3>Lesion-Deficit Map</h3>
+      <div class="layer-stack">
+        ${[
+          {n:'A: Optic nerve (unilateral)',c:'#e84545',d:'Monocular blindness (ipsilateral). RAPD present. Central scotoma in optic neuritis.'},
+          {n:'B: Optic chiasm (central)',c:'#f5a623',d:'Bitemporal hemianopia. Pituitary adenoma, craniopharyngioma. Compression of crossing nasal fibres.'},
+          {n:'C: Lateral chiasm',c:'#4da8ff',d:'Binasal hemianopia (rare). Bilateral carotid artery calcification (compression of non-crossing temporal fibres).'},
+          {n:'D: Optic tract',c:'#a78bfa',d:'Contralateral homonymous hemianopia (incongruous). Anterior choroidal or PCA territory.'},
+          {n:'E: Temporal loop (Meyer)',c:'#00d4aa',d:"Superior quadrantanopia ('pie in the sky'). Temporal lobe lesion. Inferior visual field representation."},
+          {n:'F: Parietal radiations',c:'#4ade80',d:"Inferior quadrantanopia ('pie on the floor'). Parietal lobe lesion. Superior visual field."},
+          {n:'G: Occipital cortex (V1)',c:'#c5d8f8',d:'Congruous homonymous hemianopia with macular sparing (dual blood supply — PCA + MCA).'},
+        ].map(l=>`<div class="layer-row">
+          <div class="layer-color" style="background:${l.c}"></div>
+          <div style="min-width:200px;font-size:12px;color:${l.c}">${l.n}</div>
+          <div class="layer-detail" style="font-size:12px">${l.d}</div>
+        </div>`).join('')}
+      </div>
+      <div style="margin-top:14px;font-size:12px;color:var(--text2)">
+        <span class="badge badge-teal">KEY</span> <strong style="color:var(--teal)">Macular sparing</strong> in occipital lesions — bilateral macular representation at occipital pole + MCA collateral supply.
+        <br><br><span class="badge badge-purple">LGN</span> Lateral geniculate nucleus (thalamus). 6 layers. Layers 1,2,3,5 = ipsilateral; 2,4,6 = contralateral. Magnocellular (1,2) + parvocellular (3–6) streams.
+      </div>
+    </div>
+  </div>
+  </div>`;
+}
+
+function pathwaySVG(){
+  return `<svg width="240" height="360" viewBox="0 0 240 360">
+  <!-- Retinas -->
+  <ellipse cx="40" cy="40" rx="30" ry="18" fill="rgba(232,69,69,.1)" stroke="#e84545" stroke-width="1.5"/>
+  <text x="40" y="44" text-anchor="middle" font-size="8" fill="#e84545" font-family="Space Mono">L RETINA</text>
+  <ellipse cx="200" cy="40" rx="30" ry="18" fill="rgba(232,69,69,.1)" stroke="#e84545" stroke-width="1.5"/>
+  <text x="200" y="44" text-anchor="middle" font-size="8" fill="#e84545" font-family="Space Mono">R RETINA</text>
+  <!-- Optic nerves -->
+  <line x1="60" y1="52" x2="100" y2="110" stroke="#f5a623" stroke-width="2"/>
+  <line x1="180" y1="52" x2="140" y2="110" stroke="#f5a623" stroke-width="2"/>
+  <!-- Chiasm -->
+  <ellipse cx="120" cy="118" rx="32" ry="14" fill="rgba(245,166,35,.1)" stroke="#f5a623" stroke-width="1.5"/>
+  <text x="120" y="122" text-anchor="middle" font-size="8" fill="#f5a623" font-family="Space Mono">CHIASM</text>
+  <!-- Crossing nasal fibres -->
+  <path d="M100,114 Q120,125 140,114" fill="none" stroke="#f5a623" stroke-width="1" stroke-dasharray="3 2"/>
+  <!-- Optic tracts -->
+  <line x1="92" y1="126" x2="70" y2="180" stroke="#a78bfa" stroke-width="2"/>
+  <line x1="148" y1="126" x2="170" y2="180" stroke="#a78bfa" stroke-width="2"/>
+  <!-- LGN -->
+  <ellipse cx="70" cy="188" rx="22" ry="12" fill="rgba(167,139,250,.1)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="70" y="192" text-anchor="middle" font-size="7" fill="#a78bfa" font-family="Space Mono">LGN L</text>
+  <ellipse cx="170" cy="188" rx="22" ry="12" fill="rgba(167,139,250,.1)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="170" y="192" text-anchor="middle" font-size="7" fill="#a78bfa" font-family="Space Mono">LGN R</text>
+  <!-- Meyer's loop -->
+  <path d="M60,198 Q30,230 50,265" fill="none" stroke="#00d4aa" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <path d="M180,198 Q210,230 190,265" fill="none" stroke="#00d4aa" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <!-- Parietal radiations -->
+  <line x1="80" y1="198" x2="80" y2="260" stroke="#4ade80" stroke-width="1.5"/>
+  <line x1="160" y1="198" x2="160" y2="260" stroke="#4ade80" stroke-width="1.5"/>
+  <!-- Occipital cortex -->
+  <rect x="60" y="270" width="120" height="40" rx="6" fill="rgba(197,216,248,.08)" stroke="#c5d8f8" stroke-width="1.5"/>
+  <text x="120" y="286" text-anchor="middle" font-size="9" fill="#c5d8f8" font-family="Space Mono">VISUAL CORTEX V1</text>
+  <text x="120" y="300" text-anchor="middle" font-size="8" fill="#5a7a99" font-family="Space Mono">Calcarine fissure</text>
+  <!-- Labels A-G -->
+  <text x="20" y="72" font-size="9" fill="#e84545" font-family="Space Mono" font-weight="700">A</text>
+  <text x="120" y="148" text-anchor="middle" font-size="9" fill="#f5a623" font-family="Space Mono" font-weight="700">B</text>
+  <text x="38" y="165" font-size="9" fill="#a78bfa" font-family="Space Mono" font-weight="700">D</text>
+  <text x="28" y="240" font-size="9" fill="#00d4aa" font-family="Space Mono" font-weight="700">E</text>
+  <text x="87" y="245" font-size="9" fill="#4ade80" font-family="Space Mono" font-weight="700">F</text>
+  <text x="120" y="332" text-anchor="middle" font-size="9" fill="#c5d8f8" font-family="Space Mono" font-weight="700">G</text>
+  </svg>`;
+}
+
+// ─── SURGICAL PANELS ─────────────────────────────────────────────────────────
+const SURGERIES = {
+  phaco:{
+    title:'Phacoemulsification',sub:'Standard extracapsular cataract extraction via phaco probe | Incision: 2.2–2.75 mm clear corneal',
+    steps:[
+      {n:'01',t:'Topical/peribulbar anaesthesia',d:'Topical proxymetacaine 0.5% for cooperative patients. Peribulbar: 2% lignocaine + 0.5% bupivacaine, 5–7 mL inferotemporal.',w:null},
+      {n:'02',t:'Clear corneal incision (CCI)',d:'Temporal or steep-axis. Biplanar incision: outer groove (800 μm) → anterior bevel enters anterior chamber. Self-sealing architecture.',w:'Descemet\'s detachment risk if incision angle incorrect.'},
+      {n:'03',t:'Continuous curvilinear capsulorhexis',d:'5.0–5.5 mm diameter. Cystotome or Utrata forceps. Tears Zinn membrane + anterior capsule. Must be central and complete — larger rhexis → PCR risk at bag rim.',w:'Radial tear → extends posteriorly = PCR.'},
+      {n:'04',t:'Hydrodissection',d:'BSS under capsule margin → "golden ring" sign (nucleus rotates freely). Hydrodelineation separates nucleus from endonucleus (softer epinucleus shell).',w:null},
+      {n:'05',t:'Nucleus phacoemulsification',d:'Divide-and-conquer or stop-and-chop technique. Phaco probe tip in central nucleus. U/S energy + aspiration. Protect endothelium with OVD.',w:'Posterior capsule rupture (PCR) — most feared complication. Vitreous loss → RD, CMO, endophthalmitis risk.'},
+      {n:'06',t:'Cortex aspiration (IA)',d:'Irrigation-aspiration handpiece. Remove all cortical remnants. Posterior capsule polishing optional (reduces PCO).',w:null},
+      {n:'07',t:'IOL implantation',d:'OVD fills capsular bag → injector delivers foldable acrylic IOL (hydrophobic preferred). Haptics positioned in 3/9 o\'clock meridian.',w:'Zonular weakness: Marfan, exfoliation, trauma — use CTR.'},
+      {n:'08',t:'OVD removal + wound check',d:'Remove all viscoelastic (elevated IOP if retained). Hydrostatically seal wound. Check Seidel test.',w:null},
+    ],
+    layers:['Skin / conjunctiva','Corneal epithelium','Corneal stroma (90%)','Descemet\'s membrane','Endothelium → AC','Iris plane','Capsular bag']
+  },
+  vitrect:{
+    title:'Pars Plana Vitrectomy (PPV)',sub:'Posterior segment surgery | 23/25/27 gauge | Entry 3.5–4 mm posterior to limbus',
+    steps:[
+      {n:'01',t:'Conjunctival opening + sclerotomies',d:'Pars plana at 3.5 mm (phakic) or 3.0 mm (aphakic/pseudophakic) posterior to limbus. Three ports: infusion (inferotemporal), light pipe (superotemporal), vitrector (superonasal).',w:'Sclerotomy anterior to pars plana → vitreous base drag, retinal incarceration.'},
+      {n:'02',t:'Core vitrectomy',d:'Remove central gel. High-speed cutter (5,000–10,000 cuts/min). Balanced between cut rate and aspiration to minimise traction.',w:null},
+      {n:'03',t:'Posterior hyaloid separation',d:'Engage and elevate posterior hyaloid with aspiration — whitish "cobweb" of PVD. Induce if not present.',w:'Avoid suction over disc — can avulse central retinal vessels.'},
+      {n:'04',t:'Peripheral vitrectomy',d:'With scleral indentation. Remove vitreous base. Critical in retinal detachment surgery.',w:'Incomplete vitrectomy → reproliferation, PVR.'},
+      {n:'05',t:'Membrane peeling (if needed)',d:'ILM peeling with end-gripping forceps (stained with BBG/ICG). Macular hole, ERM surgery.',w:null},
+      {n:'06',t:'Laser endophotocoagulation',d:'Treat retinal breaks, ischaemia. 3 rows around breaks. Barricade retinopexy.',w:null},
+      {n:'07',t:'Fluid-air exchange',d:'Replace BSS with air → dries retina. Required before silicone oil or C3F8 tamponade.',w:null},
+      {n:'08',t:'Tamponade placement',d:'SF6 (1–2 wks), C3F8 (6–8 wks), or silicone oil (indefinite). Prone positioning for superior breaks. Face-down for MH.',w:'Aviation contraindicated with gas (expansion risk).'},
+    ],
+    layers:['Conjunctiva','Tenon\'s capsule','Sclera (1 mm)','Suprachoroidal space','Choroid','RPE','Retina (vitreous cavity)']
+  },
+  lasik:{
+    title:'LASIK',sub:'Laser Assisted In Situ Keratomileusis | Femtosecond flap + excimer ablation',
+    steps:[
+      {n:'01',t:'Pre-op assessment',d:'Pachymetry (corneal thickness >490 μm), topography (Placido + Scheimpflug), residual stromal bed calculation (>250 μm), refraction stability ×2 years.',w:'Keratoconus — absolute contraindication. Forme fruste = relative CI.'},
+      {n:'02',t:'Flap creation (femtosecond)',d:'IntraLase/Zeiss VisuMax — horizontal laminar dissection at 100–120 μm depth. Superior hinge. 8–9 mm diameter. Gas bubble plane. 30–60 second suction.',w:'Opaque bubble layer (OBL) → rescheduled ablation.'},
+      {n:'03',t:'Flap lifting',d:'Spatula in pocket → lift flap on hinge. Expose stromal bed. Dry with Merocel sponge.',w:null},
+      {n:'04',t:'Excimer ablation',d:'193 nm UV (argon fluoride). Ablation rate 0.25 μm/pulse. 1 D myopia ≈ 15 μm tissue. Wavefront-guided or optimised aspheric profiles. Active eye-tracking (1000 Hz).',w:'Decentration > 0.5 mm → aberrations, glare, halo.'},
+      {n:'05',t:'Flap repositioning + irrigation',d:'Float flap back. Irrigate interface. Dry and align. 30-second drying.',w:'Epithelial ingrowth risk — flap must seal completely.'},
+      {n:'06',t:'Post-op drops',d:'Topical antibiotic 1 week + steroid taper + lubricants (neural regeneration ~6 months).',w:null},
+    ],
+    layers:['Epithelium (50 μm)','Bowman\'s (10–12 μm)','LASIK flap zone','Residual stromal bed (>250 μm)',"Descemet's",'Endothelium']
+  },
+  trabeculect:{
+    title:'Trabeculectomy',sub:'Guarded filtration surgery for glaucoma | IOP reduction via subconjunctival bleb',
+    steps:[
+      {n:'01',t:'Fornix or limbus-based flap',d:'Conjunctival flap dissected to expose sclera. Limbus-based = superior conjunctival opening. Fornix-based = at limbus.',w:null},
+      {n:'02',t:'Mitomycin C (MMC) application',d:'0.2–0.4 mg/mL × 1–3 minutes. Anti-metabolite prevents bleb scarring. Sponges under conjunctival flap. Copious BSS wash.',w:'MMC overdose → avascular bleb, hypotony, bleb leak.'},
+      {n:'03',t:'Scleral flap dissection',d:'3×3 mm or 4×4 mm triangular/rectangular half-thickness lamellar flap. Anterior to limbus, into clear cornea.',w:'Full-thickness inadvertent — convert to punch trabeculectomy.'},
+      {n:'04',t:'Paracentesis',d:'Side-port incision in clear cornea. Allows AC maintenance and postoperative access.',w:null},
+      {n:'05',t:'Sclerostomy + iridectomy',d:'Punch (1.5 mm Kelly) or block excision of corneoscleral tissue. Peripheral iridectomy prevents iris plug.',w:'Iris or vitreous prolapse = complication.'},
+      {n:'06',t:'Scleral flap closure',d:'2–3 releasable sutures (10-0 nylon). Tension determines filtration. Adjustable postoperatively (laser suture lysis).',w:null},
+      {n:'07',t:'Conjunctival closure',d:'Water-tight closure with 8-0 Vicryl or 10-0 nylon. Critical — bleb leak = failure + endophthalmitis risk.',w:'Bleb-related endophthalmitis — 1% per year lifetime risk.'},
+    ],
+    layers:['Conjunctiva + Tenon\'s','Scleral flap (half-thickness)','Full-thickness sclera','Uveal tissue (trabecular meshwork)','Anterior chamber']
+  },
+};
+
+function renderSurgical(){
+  const s=SURGERIES[activeSurgical];
+  return `<div class="panel">
+  <div class="panel-title">${s.title}</div>
+  <div class="panel-sub">${s.sub}</div>
+  <div class="eye-stage" style="align-items:flex-start">
+    <div style="flex:1;min-width:200px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:1px;margin-bottom:10px">OPERATIVE STEPS</div>
+      <div class="surg-steps">
+        ${s.steps.map((st,i)=>`
+          <div class="surg-step" onclick="this.classList.toggle('active')">
+            <div class="step-num">${st.n}</div>
+            <div class="step-content-inner">
+              <div class="step-title">${st.t}</div>
+              <div class="step-note">${st.d}</div>
+              ${st.w?`<div class="step-warn">⚠ ${st.w}</div>`:''}
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div style="width:200px;flex-shrink:0">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:1px;margin-bottom:10px">TISSUE PLANES</div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        ${s.layers.map((l,i)=>`
+          <div style="padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:4px;font-size:11px;border-left:2px solid hsl(${180+i*25},60%,55%)">
+            <span style="color:hsl(${180+i*25},60%,65%);font-family:var(--mono);font-size:9px">${String(i+1).padStart(2,'0')}</span> ${l}
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+  </div>`;
+}
+
+// ─── DISEASE PANELS ──────────────────────────────────────────────────────────
+const DISEASES = {
+  'corneal':{label:'Corneal Disease',items:[
+    {n:'Bacterial keratitis',cat:'Infectious',d:'Pseudomonas (contact lens wearers), Staphylococcus. Epithelial defect + stromal infiltrate. Hypopyon in severe cases. Ulcer margins undermined.',layers:['Epithelial breach','Stromal infiltration','Descemetocele (severe)','Endothelial ring (immune)'],rx:'Intensive topical fluoroquinolone. Corneal scraping for culture.'},
+    {n:'Viral keratitis (HSV)',cat:'Infectious',d:'Dendritic ulcer (branching epithelial pattern with terminal bulbs) pathognomonic. Stromal keratitis = immune-mediated. Recurrence common with UV/stress.',layers:['Dendritic epithelial lesion','Stromal ghost vessels (chronic)'],rx:'Topical acyclovir 3% × 3 wk. Oral prophylaxis for recurrence.'},
+    {n:'Keratoconus',cat:'Ectasia',d:'Progressive corneal thinning + ectasia. Inferior steepening. Vogt striae (deep stromal stress lines), Fleischer ring (basal epithelial Fe deposition at cone base). Munson sign on downgaze.',layers:["Epithelial thinning",'Bowman disruption','Stromal thinning (inferior)','Ectatic geometry'],rx:'Spectacles → RGP lens → collagen cross-linking (halts progression) → DALK/PK.'},
+    {n:'Corneal graft failure',cat:'Post-surgical',d:'Endothelial rejection (most common) — Khodadoust line = endothelial rejection line. Stromal rejection = diffuse haziness. Precipitates on graft.',layers:['Epithelial rejection','Stromal oedema','Endothelial rejection (line)'],rx:'Intensive topical steroid. Systemic steroid if severe. Regraft if permanent.'},
+  ]},
+  'lens-d':{label:'Lens Disease',items:[
+    {n:'Nuclear sclerosis cataract',cat:'Age-related',d:'Hardening + yellowing of nucleus. Progressive myopic shift (index myopia). Brunescent nucleus = grade IV. Most common adult cataract worldwide.',layers:['Nuclear pigmentation','Cortical sparing (early)'],rx:'Phacoemulsification with IOL. Higher phaco energy for hard nuclei.'},
+    {n:'Posterior subcapsular cataract',cat:'Age-related / Steroid',d:'Posterior cortex beneath posterior capsule. Disproportionate vision loss (affects axial ray). Associated with steroid use, diabetes, uveitis, radiation.',layers:['PSC plaque','Posterior capsule'],rx:'Phacoemulsification. Capsule polish important to prevent PCO recurrence.'},
+    {n:'Posterior capsule opacification',cat:'Post-surgical',d:'Lens epithelial cell migration onto posterior capsule (Elschnig pearls). Weeks to years post phaco. Most common complication of cataract surgery.',layers:['LEC migration','Posterior capsule opacification'],rx:'Nd:YAG laser capsulotomy (safe, outpatient). Posterior capsule tears → floaters/RD risk.'},
+    {n:'Subluxated lens (Ectopia lentis)',cat:'Structural',d:'Partial zonular disruption. Marfan (superior subluxation), homocystinuria (inferior), trauma (any direction). Phacodonesis (trembling lens).',layers:['Zonular weakness','Lens displacement','Vitreous prolapse (severe)'],rx:'Observation if mild. Aphakia correction. ACIOL/iris claw if severe.'},
+  ]},
+  'glaucoma':{label:'Glaucoma',items:[
+    {n:'Primary open angle glaucoma',cat:'Chronic',d:'Commonest form. JCT resistance → raised IOP → RGC axonal loss at lamina cribrosa. Silent until advanced loss. Superior arcuate scotoma → nasal step → central island.',layers:['JCT resistance (site)','Lamina cribrosa (axon damage)','NFL thinning','GCL loss (OCT)'],rx:'Prostaglandin analogues (uveoscleral outflow ↑). SLT. Trabeculectomy. MIGS.'},
+    {n:'Acute angle-closure glaucoma',cat:'Acute',d:'Pupillary block → iris bombs forward → closes angle. IOP suddenly >40–50 mmHg. Halos, severe pain, N&V, corneal oedema, fixed mid-dilated pupil.',layers:['Pupillary block','Angle closure','Corneal oedema','Optic nerve ischaemia (acute)'],rx:'IV acetazolamide + pilocarpine + timolol → laser peripheral iridotomy (LPI) → fellow eye LPI prophylaxis.'},
+    {n:'Normal tension glaucoma',cat:'Pressure-independent',d:'Glaucomatous damage at IOP ≤21 mmHg. Vascular (systemic hypotension, Raynaud, migraine) + mechanical factors. Disc haemorrhages common.',layers:['Optic nerve susceptibility','Vascular insufficiency','Lamina cribrosa deformation'],rx:'IOP-lowering (evidence for 30% reduction). Neuroprotection (investigational). Vascular optimisation.'},
+    {n:'Pseudoexfoliation glaucoma',cat:'Secondary open angle',d:'Fibrillar grey material deposited on lens, zonules, TM. Classic dandruff-like pattern on anterior lens capsule. Higher IOP, more rapid progression. Zonular weakness → phaco complications.',layers:['PXF material on TM (resistance)','Zonular weakness','Capsular PXF deposits'],rx:'Prostaglandins. Phaco with CTR for zonular laxity. Trabeculectomy if uncontrolled.'},
+  ]},
+  'retinal':{label:'Retinal Disease',items:[
+    {n:'Diabetic retinopathy (PDR)',cat:'Vascular',d:'Proliferative DR: NVD (neovascularisation of disc) + NVE → vitreous haemorrhage → tractional RD. Driven by VEGF from ischaemic retina (peripheral non-perfusion).',layers:['Pericyte loss (early)','Microaneurysm','Hard exudate (BRB breakdown)','NVE → fibrovascular membrane','Tractional RD (late)'],rx:'Pan-retinal photocoagulation (PRP) → anti-VEGF → vitrectomy for tractional RD or VH.'},
+    {n:'Rhegmatogenous retinal detachment',cat:'Structural',d:'Retinal break → liquefied vitreous under retina → sensory retina lifts from RPE. Risk factors: myopia, trauma, lattice degeneration. Bullous detachment, tobacco-dust cells (Shafer), RAPD if extensive.',layers:['Retinal break (horse-shoe or hole)','Subretinal fluid','Sensory retina elevation','Photoreceptor loss (if macula off)'],rx:'Scleral buckle / PPV + laser + gas/oil tamponade. Macular-off: urgent surgery.'},
+    {n:'Wet AMD (nAMD)',cat:'Degenerative',d:"Choroidal neovascularisation (CNV) through Bruch's membrane → subretinal/sub-RPE fluid, haemorrhage, lipid. Rapid central vision loss. VEGF-driven.",layers:["Bruch's membrane disruption",'RPE detachment','CNV membrane','Subretinal fluid/blood'],rx:'Anti-VEGF injections (ranibizumab, aflibercept, bevacizumab). T&E or PRN protocol.'},
+    {n:'Central retinal artery occlusion',cat:'Vascular',d:'Sudden painless visual loss. Retinal whitening (ischaemic oedema) + cherry-red spot at fovea (choroidal perfusion visible through thin foveal retina). GCA must be excluded.',layers:['Inner retinal ischaemia (all layers)','NFL oedema','GCL necrosis','Cherry red spot (fovea)'],rx:'Emergency: ocular massage, AC paracentesis, IOP lowering. GCA: IV methylprednisolone. Thrombolysis (investigational).'},
+  ]},
+  'optic':{label:'Optic Nerve Disease',items:[
+    {n:'Optic neuritis',cat:'Inflammatory',d:'Pain on eye movement (orbital part of nerve). Central scotoma, dyschromatopsia, RAPD. Unilateral. 50% associated with MS. MRI — periventricular plaques (Dawson fingers).',layers:['Demyelination of nerve fibres','Perioptic inflammation','Retrobulbar (MRI lesion)'],rx:'IV methylprednisolone (speeds recovery, no long-term benefit). DMT if MS risk high.'},
+    {n:'Papilledema',cat:'Raised ICP',d:'True disc oedema from raised ICP transmitted via perioptic subarachnoid space. Bilateral, asymmetric OK. Obscurations, enlarged blind spot, peripheral constriction late. Paton lines (peripapillary choroidal folds).',layers:['Axoplasmic flow obstruction','Nerve fibre layer swelling','Paton lines','Subretinal fluid (severe)'],rx:'Treat cause (IIH: weight loss, acetazolamide). ONSF or LP shunt if vision threatened.'},
+    {n:'Non-arteritic AION (NAION)',cat:'Vascular',d:'Segment disc infarction — small optic disc (disc at risk, cup:disc ratio <0.1). Altitudinal visual field loss on waking. Associated with nocturnal hypotension, apnoea.',layers:['Posterior ciliary artery territory infarct','Disc oedema (sectoral)','NFL loss (inferior or superior)'],rx:'No proven treatment. Treat vascular risk factors. Aspirin debated. Fellow eye risk ~15% over 5 years.'},
+    {n:'Glaucomatous optic neuropathy',cat:'Pressure-related',d:'Progressive RGC loss and axonal dropout. Disc changes: vertical CDR enlargement, inferior/superior rim notching (ISNT rule violation), disc haemorrhages, bayonetting of vessels, baring of lamina.',layers:['Lamina cribrosa deformation','RGC axon compression','NFL loss (superior/inferior)','Rim loss (ISNT violation)'],rx:'IOP reduction (medical, laser, surgical). Neuroprotection investigational.'},
+  ]},
+};
+
+function renderDisease(){
+  const cat=DISEASES[activeDisease];
+  return `<div class="panel">
+  <div class="panel-title">${cat.label}</div>
+  <div class="panel-sub">Anatomy-disease correlation | Affected layers | Progression pattern</div>
+  <div class="disease-grid">
+    ${cat.items.map(d=>`
+      <div class="disease-card" onclick="toggleDisease(this)">
+        <div class="disease-card-cat">${d.cat}</div>
+        <div class="disease-card-name">${d.n}</div>
+        <div class="disease-card-desc">${d.d}</div>
+        <div style="margin-top:10px;display:none" class="disease-detail">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:6px">AFFECTED LAYERS</div>
+          ${d.layers.map(l=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <div style="width:4px;height:4px;border-radius:50%;background:var(--red);flex-shrink:0"></div>
+            <span style="font-size:12px;color:var(--text2)">${l}</span></div>`).join('')}
+          <div style="margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:4px">MANAGEMENT</div>
+          <div style="font-size:12px;color:var(--teal)">${d.rx}</div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text3);font-family:var(--mono)">↓ click to expand</div>
+      </div>`).join('')}
+  </div>
+  </div>`;
+}
+
+function toggleDisease(el){
+  const det=el.querySelector('.disease-detail');
+  const hint=el.querySelector('div:last-child');
+  const open=det.style.display==='none';
+  det.style.display=open?'block':'none';
+  hint.textContent=open?'↑ click to collapse':'↓ click to expand';
+  el.classList.toggle('sel',open);
+}
+
+// ─── CLINICAL CASES ──────────────────────────────────────────────────────────
+function renderClinical(){
+  const c=CLINICAL_CASES[caseIdx];
+  return `<div class="panel">
+  <div class="panel-title">Clinical Case ${caseIdx+1} / ${CLINICAL_CASES.length}</div>
+  <div class="panel-sub">Anatomy-based clinical reasoning — PG ophthalmology level</div>
+  <div class="case-box">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:2px;margin-bottom:8px">CLINICAL HISTORY</div>
+    <div class="case-hx">${c.hx.split('\n').join('<br>')}</div>
+    <div class="case-question">${c.q}</div>
+    <div class="case-opts">
+      ${c.opts.map((o,i)=>`
+        <button class="case-opt${caseAnswered?(i===c.ans?' correct':' wrong'):''}" 
+          onclick="${!caseAnswered?`answerCase(${i},${c.ans})`:''}">
+          ${String.fromCharCode(65+i)}. ${o}
+        </button>`).join('')}
+    </div>
+    <div id="case-feedback" style="display:${caseAnswered?'block':'none'}" 
+      class="case-feedback ${caseAnswered?'feedback-correct':''}">
+      <strong>Anatomical basis:</strong> ${c.fb}
+    </div>
+    ${caseAnswered?`<button class="next-btn" onclick="nextCase()">NEXT CASE →</button>`:''}
+  </div>
+  <div style="display:flex;gap:6px;margin-top:4px">
+    ${CLINICAL_CASES.map((_,i)=>`<div style="width:28px;height:4px;border-radius:2px;background:${i===caseIdx?'var(--teal)':'var(--border)'}"></div>`).join('')}
+  </div>
+  </div>`;
+}
+
+function answerCase(chosen,correct){
+  caseAnswered=true;
+  renderContent();
+  // Highlight correct/wrong
+  const opts=document.querySelectorAll('.case-opt');
+  opts.forEach((o,i)=>{
+    if(i===correct) o.classList.add('correct');
+    else if(i===chosen&&chosen!==correct) o.classList.add('wrong');
+  });
+  const fb=document.getElementById('case-feedback');
+  if(fb){
+    fb.style.display='block';
+    fb.className='case-feedback '+(chosen===correct?'feedback-correct':'feedback-wrong');
+  }
+}
+
+function nextCase(){
+  caseIdx=(caseIdx+1)%CLINICAL_CASES.length;
+  caseAnswered=false;
+  renderAll();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.selLayer=selLayer;
+window.selectSection=selectSection;
+window.selectSurgical=selectSurgical;
+window.selectDisease=selectDisease;
+window.selectCase=selectCase;
+window.answerCase=answerCase;
+window.nextCase=nextCase;
+window.toggleDisease=toggleDisease;
+window.setMode=setMode;
+
+renderAll();
+</script>
+</body>
+</html>
